@@ -89,7 +89,7 @@ state_level_stats_2019 <- acs_news_2019 %>% group_by(state_name) %>%
   summarise(avg_newspapers_per_county_by_state = mean(county_newspaper_quantity_2019), 
             total_newspapers_per_state = sum(county_newspaper_quantity_2019),
             state_counties_zero_papers = sum(if_else(county_newspaper_quantity_2019 == 0,1,0)),
-            population = sum(population)
+            state_population = sum(population)
             ) %>% rename(state_name_y = state_name) %>%
     as.data.frame() %>% select(-geometry)
 
@@ -99,10 +99,11 @@ acs_news_2019 <- acs_news_2019 %>% left_join(state_level_stats_2019, by = c("sta
 
 acs_news_2019 %>% colnames()
 
-acs_2019_sf <- acs_news_2019 %>% select(GEOID, fips, geometry, state, state_name, state_code, county, county_code, population, 
-                         county_newspaper_quantity_2019, avg_circulation_2019, avg_newspapers_per_county_by_state, 
+acs_2019_sf <- acs_news_2019 %>% select(GEOID, fips, geometry, state, state_name, state_code, county, county_code,
+                                        population, state_population, county_newspaper_quantity_2019, 
+                                        avg_circulation_2019, avg_newspapers_per_county_by_state, 
                          total_newspapers_per_state, state_counties_zero_papers) %>%
-                  rename(abbr = state)
+                  rename(abbr = state, county_population = population)
 
 
 acs_2019_sf <- acs_2019_sf %>% mutate(county_papercount_group = case_when(
@@ -113,8 +114,9 @@ acs_2019_sf <- acs_2019_sf %>% mutate(county_papercount_group = case_when(
 
 acs_2019_sf <- acs_2019_sf %>% filter(state_name != "Alaska")
 
-acs_2019_sf <- acs_2019_sf %>% mutate(total_circulation_per_county = county_newspaper_quantity_2019 * avg_circulation_2019,
-                                      news_readership_percentage = total_circulation_per_county/population)
+# acs_2019_sf <- acs_2019_sf %>% mutate(
+#   total_circulation_per_county = county_newspaper_quantity_2019 * avg_circulation_2019,
+#                                       news_readership_percentage = total_circulation_per_county/population)
 
 View(acs_2019_sf)
 
@@ -166,13 +168,13 @@ acs_2019_sf %>% as.data.frame() %>% select(state_name) %>% drop_na() %>% distinc
 state_level_stats_2019 <- state_level_stats_2019 %>% drop_na() %>% 
   mutate (avg_newspapers_per_county_by_state = round(avg_newspapers_per_county_by_state,2),
           total_newspapers_per_state = round(total_newspapers_per_state,0),
-          state_counties_zero_papers = round(state_counties_zero_papers,0),
-          papers_per_capita = total_newspapers_per_state/population
+          state_counties_zero_papers = round(state_counties_zero_papers,0)
+          #,papers_per_capita = total_newspapers_per_state/population
           ) %>% 
   filter(state_name_y != "Alaska") %>% rename(state_name = state_name_y)
 
 
-write_rds(state_level_stats_2019_small, "state_stats.rds")
+#write_rds(state_level_stats_2019, "C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/state_stats_new.rds")
 
 ## convert to tiles
 

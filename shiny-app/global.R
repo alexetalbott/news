@@ -28,7 +28,7 @@ library(sf)           # For reading, writing and working with spatial objects
 
 data <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/my_sf.rds")
 
-state_stats <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/state_stats.rds")
+state_stats <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/state_stats_new.rds")
 
 states_all <- data %>% as.data.frame() %>% select(state_name) %>% drop_na() %>% distinct()
 
@@ -36,4 +36,4 @@ tiles <- geojson_read("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/dataset
 tiles_sf <- st_as_sf(tiles)
 
 tiles_new <- geojson_read("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/datasets/tiles_new.topo.json", what = "sp")
-tiles_new_sf <- st_as_sf(tiles)
+tiles_new_sf <- st_as_sf(tiles_new)

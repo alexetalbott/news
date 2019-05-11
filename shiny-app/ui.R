@@ -32,9 +32,9 @@ shinyUI(
         tabPanel("tile cartogram",
                  sidebarLayout(
                    sidebarPanel(
-                      # selectInput(inputId = "tile_type", label = "Select Data to Plot", 
-                      #             choices=states_all,
-                      #             selected="Tennessee"),
+                     prettyRadioButtons("radio", label = h3("Choose Tile Data"),
+                                  choices = list("Average Papers Per County" = 1, "Counties with Zero Papers" = 2), 
+                                  selected = 1),
                      width=2
                    )
                    ,
