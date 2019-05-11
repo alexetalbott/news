@@ -1,5 +1,16 @@
 shinyServer(function(input, output, session) {
   
+  
+  ## tab 1 reactive
+  
+  stateSelectInput <- reactive({
+    record <- state_stats %>% filter(state_name == input$state_selection)
+    valueRecord <- record$change_in_newspapers
+    abs(valueRecord)
+  })
+  
+  ## tab 1
+  
   output$mymap <- renderLeaflet({
     
     mapdata <- data %>% filter(state_name == input$state_selection) 
@@ -39,9 +50,9 @@ shinyServer(function(input, output, session) {
   })
   
   
-  output$default <- renderText({ input$state_selection })
+  output$default <- renderText(paste0({ input$state_selection }," has lost ",stateSelectInput()," Newspapers since 2004."))
   
-  #output$placeholder <- renderText({ input$txt })
+  #output$placeholder <- renderText("Tennessee_placeholder")
   
   
   

@@ -3,6 +3,18 @@ shinyUI(
     titlePanel("News Disappeared: Does Your County Have a Local Paper?"),
     #theme = shinytheme("united"),
     theme = "style.css",
+    tags$style(HTML("
+
+                    .box.box-solid.box-primary{
+                    
+                    background:#ff9999
+                    }
+
+                    #default {
+                                  text-align: center;
+                                }
+                    
+                    ")),
       tabsetPanel(
         tabPanel("State Map",
                  sidebarLayout(
@@ -29,7 +41,9 @@ shinyUI(
                      br(),
                      br(),
                      fluidRow(
-                     verbatimTextOutput("default")
+                       box(status = "primary", solidHeader = TRUE, width = 15,
+                        h2(textOutput("default"))
+                       )
                      #,verbatimTextOutput("placeholder", placeholder = TRUE)
                      )
                    ) # end of mainPanel
