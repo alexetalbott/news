@@ -98,10 +98,18 @@ data_2004_summary <- data_2004_states %>% group_by(county_join) %>% summarise(co
 
 acs_news_2019 <- left_join(dat_new, data_2019_summary, by=c("NAME"="county_join"))
 
-## replace NAs in selected columns
-acs_news_2019 <- acs_news_2019 %>% replace_na(list(county_newspaper_quantity_2019=0, avg_circulation_2019=0))
+county_level_data <- left_join(acs_news_2019, data_2004_summary, by=c("NAME" = "county_join"))
 
-## calculate more metrics from acs_news_2019 dataframe
+
+## replace NAs in selected columns
+#######acs_news_2019 <- acs_news_2019 %>% replace_na(list(county_newspaper_quantity_2019=0, avg_circulation_2019=0))
+
+county_level_data <- county_level_data %>% replace_na(list(
+  county_newspaper_quantity_2019=0, avg_circulation_2019=0,
+  county_newspaper_quantity_2004=0, avg_circulation_2004=0))
+
+
+## calculate state-level metrics from acs_news_2019 dataframe
 
 state_level_stats_2019 <- acs_news_2019 %>% group_by(state_name) %>% 
   summarise(avg_newspapers_per_county_by_state = mean(county_newspaper_quantity_2019), 
@@ -111,32 +119,110 @@ state_level_stats_2019 <- acs_news_2019 %>% group_by(state_name) %>%
             ) %>% rename(state_name_y = state_name) %>%
     as.data.frame() %>% select(-geometry)
 
-## bring in state level metrics to sf dataframe
+state_level_data <- county_level_data %>% group_by(state_name) %>% 
+  summarise(avg_newspapers_per_county_by_state = mean(county_newspaper_quantity_2019), 
+            total_newspapers_per_state = sum(county_newspaper_quantity_2019),
+            state_counties_zero_papers = sum(if_else(county_newspaper_quantity_2019 == 0,1,0)),
+            total_newspapers_per_state_2004 = sum(county_newspaper_quantity_2004),
+            state_counties_zero_papers_2004 = sum(if_else(county_newspaper_quantity_2004 == 0,1,0)),
+            state_population = sum(population)
+  ) %>% #rename(state_name_y = state_name) %>%
+  as.data.frame() %>% select(-geometry)
 
-acs_news_2019 <- acs_news_2019 %>% left_join(state_level_stats_2019, by = c("state_name"="state_name_y"))
+## make edits to state-level metrics
 
-acs_news_2019 %>% colnames()
+state_level_stats_2019 <- state_level_stats_2019 %>% drop_na() %>% 
+  mutate (avg_newspapers_per_county_by_state = round(avg_newspapers_per_county_by_state,2),
+          total_newspapers_per_state = round(total_newspapers_per_state,0),
+          state_counties_zero_papers = round(state_counties_zero_papers,0)
+          #,papers_per_capita = total_newspapers_per_state/population
+  ) %>% 
+  filter(state_name_y != "Alaska") %>% rename(state_name = state_name_y)
 
-acs_2019_sf <- acs_news_2019 %>% select(GEOID, fips, geometry, state, state_name, state_code, county, county_code,
+state_level_data <- state_level_data %>% drop_na() %>% 
+  mutate (avg_newspapers_per_county_by_state = round(avg_newspapers_per_county_by_state,2),
+          total_newspapers_per_state = round(total_newspapers_per_state,0),
+          state_counties_zero_papers = round(state_counties_zero_papers,0),
+          total_newspapers_per_state_2004 = round(total_newspapers_per_state_2004,0),
+          state_counties_zero_papers_2004 = round(state_counties_zero_papers_2004,0),
+          change_in_newspapers = total_newspapers_per_state - total_newspapers_per_state_2004
+          #,papers_per_capita = total_newspapers_per_state/population
+  ) %>% 
+  filter(state_name != "Alaska")
+
+
+
+## bring state_level metrics into county_level SF dataframe
+
+#acs_news_2019 <- acs_news_2019 %>% left_join(state_level_stats_2019, by = c("state_name"="state_name"))
+
+county_level_data <- county_level_data %>% left_join(state_level_data, by = c("state_name"="state_name"))
+
+## create final SF dataframe
+
+#acs_news_2019 %>% colnames()
+
+# acs_2019_sf <- acs_news_2019 %>% select(GEOID, fips, geometry, state, state_name, state_code, county, county_code,
+#                                         population, state_population, county_newspaper_quantity_2019, 
+#                                         avg_circulation_2019, avg_newspapers_per_county_by_state, 
+#                          total_newspapers_per_state, state_counties_zero_papers) %>%
+#                   rename(abbr = state, county_population = population)
+
+county_level_data %>% colnames()
+
+county_sf <- county_level_data %>% select(GEOID, fips, geometry, state, state_name, state_code, county, county_code,
                                         population, state_population, county_newspaper_quantity_2019, 
                                         avg_circulation_2019, avg_newspapers_per_county_by_state, 
-                         total_newspapers_per_state, state_counties_zero_papers) %>%
-                  rename(abbr = state, county_population = population)
+                                        total_newspapers_per_state, state_counties_zero_papers,
+                                        county_newspaper_quantity_2004, avg_circulation_2004,
+                                        total_newspapers_per_state_2004, state_counties_zero_papers_2004) %>%
+  rename(abbr = state, county_population = population)
 
 
-acs_2019_sf <- acs_2019_sf %>% mutate(county_papercount_group = case_when(
+## mutate sf dataframe for write_rds prep
+
+
+
+
+# acs_2019_sf <- acs_2019_sf %>% mutate(county_papercount_group = case_when(
+#   county_newspaper_quantity_2019 == 0 ~ "red2",
+#   county_newspaper_quantity_2019 == 1 ~ "lightgoldenrod1",
+#   county_newspaper_quantity_2019 > 1 ~ "lightcyan"
+# ))
+# 
+# acs_2019_sf <- acs_2019_sf %>% filter(state_name != "Alaska")
+
+county_sf <- county_sf %>% mutate(county_papercount_group = case_when(
   county_newspaper_quantity_2019 == 0 ~ "red2",
   county_newspaper_quantity_2019 == 1 ~ "lightgoldenrod1",
   county_newspaper_quantity_2019 > 1 ~ "lightcyan"
-))
+)) %>% filter(state_name != "Alaska")
 
-acs_2019_sf <- acs_2019_sf %>% filter(state_name != "Alaska")
+county_sf <- county_sf %>% mutate(
+  change_in_papercount_county = county_newspaper_quantity_2019 - county_newspaper_quantity_2004
+)
+
+# View(acs_2019_sf)
+# 
+# acs_2019_sf %>% as.data.frame() %>% select(state_name) %>% drop_na() %>% distinct()
+
+
+View(county_sf)
+
 
 # acs_2019_sf <- acs_2019_sf %>% mutate(
 #   total_circulation_per_county = county_newspaper_quantity_2019 * avg_circulation_2019,
 #                                       news_readership_percentage = total_circulation_per_county/population)
 
-View(acs_2019_sf)
+
+
+
+
+########M#A#P#S#M#A#P#S##M#A#P#S##M#A#P#S##M#A#P#S##M#A#P#S##M#A#P#S##M#A#P#S##M#A#P#S##M#A#P#S##M#A#P#S####################################################################################################
+
+
+
+
 
 ## tile plot
 
@@ -177,25 +263,14 @@ tnmap <- tm_shape(tennessee, projection = 2163) +
 tmap_leaflet(tnmap)
 
 
-write_rds(acs_2019_sf_new, "my_sf.rds")
+############WRITE DATA###############WRITE DATA##############WRITE DATA############WRITE DATA#############WRITE DATA#############
 
-acs_2019_sf %>% as.data.frame() %>% select(state_name) %>% drop_na() %>% distinct()
-
-## add in change from 2004 data
-
-state_level_stats_2019 <- state_level_stats_2019 %>% drop_na() %>% 
-  mutate (avg_newspapers_per_county_by_state = round(avg_newspapers_per_county_by_state,2),
-          total_newspapers_per_state = round(total_newspapers_per_state,0),
-          state_counties_zero_papers = round(state_counties_zero_papers,0)
-          #,papers_per_capita = total_newspapers_per_state/population
-          ) %>% 
-  filter(state_name_y != "Alaska") %>% rename(state_name = state_name_y)
+#write_rds(acs_2019_sf_new, "my_sf.rds")
 
 
 #write_rds(state_level_stats_2019, "C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/state_stats_new.rds")
 
 ## convert to tiles
-
 
 #convert_to_tiles_new <- acs_2019_sf %>% as.data.frame() %>% select(state_code,total_newspapers_per_state) %>% distinct() %>% drop_na()
 #write.csv(convert_to_tiles_new,"convert_to_tiles_new.csv")

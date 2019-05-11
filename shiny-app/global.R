@@ -26,9 +26,11 @@ library(dplyr)        # For data wrangling
 library(sf)           # For reading, writing and working with spatial objects
 
 
-data <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/my_sf.rds")
+#data <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/my_sf.rds")
+data <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/county_sf.rds")
 
-state_stats <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/state_stats_new.rds")
+#state_stats <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/state_stats_new.rds")
+state_stats <- read_rds("C:/Users/Alex/Google Drive/312 Lutie/NSS/Capstone/state_level_data.rds")
 
 states_all <- data %>% as.data.frame() %>% select(state_name) %>% drop_na() %>% distinct()
 

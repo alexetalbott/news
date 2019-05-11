@@ -21,19 +21,25 @@ shinyUI(
                      ),
                      br(),
                      br(),
-                       fluidRow(
-                         #box(
-                           tableOutput("maptable")
-                         #)
-                      )
-                   )
-                 )       
+                     fluidRow(
+                       #box(
+                         tableOutput("maptable")
+                       #)
+                      ),
+                     br(),
+                     br(),
+                     fluidRow(
+                     verbatimTextOutput("default")
+                     #,verbatimTextOutput("placeholder", placeholder = TRUE)
+                     )
+                   ) # end of mainPanel
+                 ) #end of sidebarLayout       
                 ),
         tabPanel("tile cartogram",
                  sidebarLayout(
                    sidebarPanel(
                      prettyRadioButtons("radio", label = h3("Choose Tile Data"),
-                                  choices = list("Average Papers Per County" = 1, "Counties with Zero Papers" = 2), 
+                                  choices = list("Average Papers Per County" = 1, "Total Newspapers" = 2), 
                                   selected = 1),
                      width=2
                    )
