@@ -7,7 +7,7 @@
 
 ## Description
 
-_For my capstone project, I created a shiny app about how the press in the USA has changed with the rise of the internet.In it, I explore the decline of newspapers (especially local papers) over the past two decades. _
+For my capstone project, I created a shiny app about how the press in the USA has changed with the rise of the internet. In it, I explore the decline of newspapers (especially local papers) over the past two decades.
 
 The data used belongs to the University of North Carolina and was used with their permission.
 
@@ -23,7 +23,7 @@ _Use the second tab to visualize these trends using a cartogram of the US by sta
 ## Setup/Installation Requirements
 
 * _Clone the repository_
-* _Open global.R, sever.R, ui.R_
+* _Open global.R, server.R, ui.R_
 * _Adjust as necessary_
 
 
@@ -38,5 +38,7 @@ _Reach out to me at alex.e.talbott@gmail.com with any questions._
 ## Technologies Used
 
 _R_
+
+
 
  2019 **_alexTalbott_**
